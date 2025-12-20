@@ -20,7 +20,7 @@ def manager_signup(payload: ManagerSignup, db: Session = Depends(get_db)):
     db.flush()  # get company.id
     user = User(
         username=payload.username,
-        password_hash=payload.password,
+        password_hash=hash_password(payload.password),
         role=UserRole.MANAGER,
         company_id=company.id
     )
@@ -33,6 +33,7 @@ def manager_signup(payload: ManagerSignup, db: Session = Depends(get_db)):
 @router.post("/login")
 def login(payload: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == payload.username).first()
+    print(user.password_hash)
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
