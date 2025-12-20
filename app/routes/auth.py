@@ -1,0 +1,39 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.db.deps import get_db
+from app.models.user import User
+from app.models.company import Company
+from app.schemas.auth import ManagerSignup, LoginRequest
+from app.core.roles import UserRole
+from app.core.security import hash_password, verify_password
+
+router = APIRouter(prefix="/auth", tags=["Auth"])
+
+@router.post("/signup")
+def manager_signup(payload: ManagerSignup, db: Session = Depends(get_db)):
+    existing = db.query(User).filter(User.username == payload.username).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="User already exists")
+
+    company = Company(name=payload.company_name)
+    db.add(company)
+    db.flush()  # get company.id
+    user = User(
+        username=payload.username,
+        password_hash=payload.password,
+        role=UserRole.MANAGER,
+        company_id=company.id
+    )
+
+    db.add(user)
+    db.commit()
+
+    return {"message": "Manager and company created successfully"}
+
+@router.post("/login")
+def login(payload: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == payload.username).first()
+    if not user or not verify_password(payload.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    return {"message": "Login successful (JWT next)"}
