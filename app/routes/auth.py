@@ -6,6 +6,7 @@ from app.models.company import Company
 from app.schemas.auth import ManagerSignup, LoginRequest
 from app.core.roles import UserRole
 from app.core.security import hash_password, verify_password
+from app.core.jwt import create_access_token
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -33,8 +34,20 @@ def manager_signup(payload: ManagerSignup, db: Session = Depends(get_db)):
 @router.post("/login")
 def login(payload: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == payload.username).first()
-    print(user.password_hash)
+
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    return {"message": "Login successful (JWT next)"}
+    token_data = {
+        "sub": str(user.id),
+        "role": user.role,
+        "company_id": user.company_id
+    }
+
+    access_token, expire = create_access_token(token_data)
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "expires_at": expire.isoformat()
+    }
