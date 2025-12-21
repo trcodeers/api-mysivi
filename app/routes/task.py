@@ -4,7 +4,7 @@ from app.db.deps import get_db
 from app.schemas.task import TaskCreate, TaskAssign, TaskStatusUpdate
 from app.models.task import Task
 from app.models.user import User
-from app.core.permissions import require_manager
+from app.core.permissions import require_manager, require_reportee
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
@@ -180,3 +180,66 @@ def update_task_status_by_manager(
         "message": "Task status updated successfully"
     }
 
+
+
+@router.patch("/{task_id}/status")
+def list_reportee_tasks(
+    db: Session = Depends(get_db),
+    current_user=Depends(require_reportee)
+):
+    tasks = (
+        db.query(Task)
+        .filter(
+            Task.assigned_to_id == int(current_user["sub"]),
+            Task.company_id == current_user["company_id"],
+            Task.is_deleted == False
+        )
+        .all()
+    )
+
+    return [
+        {
+            "id": task.id,
+            "title": task.title,
+            "status": task.status,
+            "created_at": task.created_at
+        }
+        for task in tasks
+    ]
+
+
+@router.patch("/reportee/{task_id}")
+def update_task_status_by_reportee(
+    task_id: int,
+    payload: TaskStatusUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_reportee)
+):
+    # 1️⃣ Fetch task assigned to this reportee
+    task = db.query(Task).filter(
+        Task.id == task_id,
+        Task.assigned_to_id == int(current_user["sub"]),
+        Task.company_id == current_user["company_id"],
+        Task.is_deleted == False
+    ).first()
+
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    # 2️⃣ BUSINESS RULE (current strategy)
+    if payload.status != TaskStatus.COMPLETED:
+        raise HTTPException(
+            status_code=403,
+            detail="Reportee can update task status only to COMPLETED"
+        )
+
+    # 3️⃣ Update status
+    task.status = payload.status
+    db.commit()
+    db.refresh(task)
+
+    return {
+        "task_id": task.id,
+        "new_status": task.status,
+        "message": "Task status updated successfully"
+    }
