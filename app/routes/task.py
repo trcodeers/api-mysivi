@@ -40,7 +40,8 @@ def list_tasks(
             "title": task.title,
             "status": task.status,
             "assigned_to_id": task.assigned_to_id,
-            "created_at": task.created_at
+            "created_at": task.created_at,
+            "updated_at": task.updated_at
         }
         for task in tasks
     ]
