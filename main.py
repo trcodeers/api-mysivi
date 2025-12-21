@@ -8,6 +8,7 @@ from app.routes import auth
 from app.db.database import engine
 from app.models import company
 from sqlalchemy import text
+from app.routes import task
 
 company.Base.metadata.create_all(bind=engine)
 logging.basicConfig(level=logging.INFO)
@@ -16,6 +17,7 @@ app = FastAPI()
 
 app.include_router(health.router)
 app.include_router(auth.router)
+app.include_router(task.router)
 
 
 
