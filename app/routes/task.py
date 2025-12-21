@@ -5,6 +5,7 @@ from app.schemas.task import TaskCreate, TaskAssign, TaskStatusUpdate
 from app.models.task import Task
 from app.models.user import User
 from app.core.permissions import require_manager, require_reportee, get_current_user
+from app.core.task_status import TaskStatus
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
@@ -191,7 +192,7 @@ def update_task_status_by_manager(
 
 
 # To update task status by reportee only
-@router.patch("/reportee/{task_id}")
+@router.patch("/{task_id}/self")
 def update_task_status_by_reportee(
     task_id: int,
     payload: TaskStatusUpdate,
