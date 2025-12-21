@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from app.db.deps import get_db
 from app.schemas.task import TaskCreate, TaskAssign, TaskStatusUpdate
@@ -6,12 +6,15 @@ from app.models.task import Task
 from app.models.user import User
 from app.core.permissions import require_manager, require_reportee, get_current_user
 from app.core.task_status import TaskStatus
+from app.core.rate_limit import limiter
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
 # List tasks for current user (manager or reportee)
 @router.get("")
+@limiter.limit("10/minute")
 def list_tasks(
+    request: Request,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
@@ -49,7 +52,9 @@ def list_tasks(
 
 # Create a new task (optionally assigned to a reportee)
 @router.post("/")
+@limiter.limit("10/minute")
 def create_task(
+    request: Request,
     payload: TaskCreate,
     db: Session = Depends(get_db),
     current_user=Depends(require_manager)
@@ -137,7 +142,9 @@ def assign_task(
 
 # To delete task by manager only
 @router.delete("/{task_id}")
+@limiter.limit("10/minute")
 def delete_task(
+    request: Request,
     task_id: int,
     db: Session = Depends(get_db),
     current_user=Depends(require_manager)
