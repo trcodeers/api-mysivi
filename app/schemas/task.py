@@ -1,4 +1,5 @@
 from pydantic import BaseModel, field_validator
+from app.core.task_status import TaskStatus
 
 class TaskCreate(BaseModel):
     title: str
@@ -17,3 +18,8 @@ class TaskCreate(BaseModel):
 
 class TaskAssign(BaseModel):
     assigned_to_id: int
+
+
+
+class TaskStatusUpdate(BaseModel):
+    status: TaskStatus

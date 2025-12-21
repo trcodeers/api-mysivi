@@ -1,13 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.db.deps import get_db
-from app.schemas.task import TaskCreate, TaskAssign
+from app.schemas.task import TaskCreate, TaskAssign, TaskStatusUpdate
 from app.models.task import Task
 from app.models.user import User
 from app.core.permissions import require_manager
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
+# Create a new task (optionally assigned to a reportee)
 @router.post("/")
 def create_task(
     payload: TaskCreate,
@@ -52,7 +53,7 @@ def create_task(
     }
 
 
-
+# Assign or reassign task to reportee of the Same company
 @router.patch("/{task_id}/assign")
 def assign_task(
     task_id: int,
@@ -95,7 +96,7 @@ def assign_task(
     }
 
 
-
+# To list tasks(Non deleted) created by the manager
 @router.get("/")
 def list_manager_tasks(
     db: Session = Depends(get_db),
@@ -123,7 +124,7 @@ def list_manager_tasks(
     ]
 
 
-
+# To delete task by manager only
 @router.delete("/{task_id}")
 def delete_task(
     task_id: int,
@@ -147,3 +148,35 @@ def delete_task(
         "task_id": task.id,
         "message": "Task deleted successfully"
     }
+
+
+# To update task status by manager only
+@router.patch("/{task_id}/status")
+def update_task_status_by_manager(
+    task_id: int,
+    payload: TaskStatusUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_manager)
+):
+    # 1️⃣ Fetch task owned by this manager
+    task = db.query(Task).filter(
+        Task.id == task_id,
+        Task.created_by_id == int(current_user["sub"]),
+        Task.company_id == current_user["company_id"],
+        Task.is_deleted == False
+    ).first()
+
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    # 2️⃣ Update status (manager can set ANY status)
+    task.status = payload.status
+    db.commit()
+    db.refresh(task)
+
+    return {
+        "task_id": task.id,
+        "new_status": task.status,
+        "message": "Task status updated successfully"
+    }
+
