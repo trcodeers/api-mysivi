@@ -210,13 +210,20 @@ def update_task_status_by_reportee(
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
+    if task.status == TaskStatus.COMPLETED:
+        raise HTTPException(
+            status_code=409,
+            detail="Task is already completed"
+        )
+
+
     # 2️⃣ BUSINESS RULE (current strategy)
     if payload.status != TaskStatus.COMPLETED:
         raise HTTPException(
             status_code=403,
             detail="Reportee can update task status only to COMPLETED"
         )
-
+    
     # 3️⃣ Update status
     task.status = payload.status
     db.commit()
