@@ -4,9 +4,46 @@ from app.db.deps import get_db
 from app.schemas.task import TaskCreate, TaskAssign, TaskStatusUpdate
 from app.models.task import Task
 from app.models.user import User
-from app.core.permissions import require_manager, require_reportee
+from app.core.permissions import require_manager, require_reportee, get_current_user
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
+
+# List tasks for current user (manager or reportee)
+@router.get("")
+def list_tasks(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    # Manager view
+    if current_user["role"] == "MANAGER":
+        tasks = db.query(Task).filter(
+            Task.created_by_id == int(current_user["sub"]),
+            Task.company_id == current_user["company_id"],
+            Task.is_deleted == False
+        ).all()
+
+    # Reportee view
+    elif current_user["role"] == "REPORTEE":
+        tasks = db.query(Task).filter(
+            Task.assigned_to_id == int(current_user["sub"]),
+            Task.company_id == current_user["company_id"],
+            Task.is_deleted == False
+        ).all()
+
+    else:
+        raise HTTPException(status_code=403, detail="Invalid role")
+
+    return [
+        {
+            "task_id": task.id,
+            "title": task.title,
+            "status": task.status,
+            "assigned_to_id": task.assigned_to_id,
+            "created_at": task.created_at
+        }
+        for task in tasks
+    ]
+
 
 # Create a new task (optionally assigned to a reportee)
 @router.post("/")
@@ -96,34 +133,6 @@ def assign_task(
     }
 
 
-# To list tasks(Non deleted) created by the manager
-@router.get("/")
-def list_manager_tasks(
-    db: Session = Depends(get_db),
-    current_user=Depends(require_manager)
-):
-    tasks = (
-        db.query(Task)
-        .filter(
-            Task.created_by_id == int(current_user["sub"]),
-            Task.company_id == current_user["company_id"],
-            Task.is_deleted == False
-        )
-        .all()
-    )
-
-    return [
-        {
-            "id": task.id,
-            "title": task.title,
-            "status": task.status,
-            "assigned_to_id": task.assigned_to_id,
-            "created_at": task.created_at
-        }
-        for task in tasks
-    ]
-
-
 # To delete task by manager only
 @router.delete("/{task_id}")
 def delete_task(
@@ -181,33 +190,7 @@ def update_task_status_by_manager(
     }
 
 
-
-@router.patch("/{task_id}/status")
-def list_reportee_tasks(
-    db: Session = Depends(get_db),
-    current_user=Depends(require_reportee)
-):
-    tasks = (
-        db.query(Task)
-        .filter(
-            Task.assigned_to_id == int(current_user["sub"]),
-            Task.company_id == current_user["company_id"],
-            Task.is_deleted == False
-        )
-        .all()
-    )
-
-    return [
-        {
-            "id": task.id,
-            "title": task.title,
-            "status": task.status,
-            "created_at": task.created_at
-        }
-        for task in tasks
-    ]
-
-
+# To update task status by reportee only
 @router.patch("/reportee/{task_id}")
 def update_task_status_by_reportee(
     task_id: int,
