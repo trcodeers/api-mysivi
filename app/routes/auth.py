@@ -14,24 +14,43 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @router.post("/signup")
 def manager_signup(payload: ManagerSignup, db: Session = Depends(get_db)):
-    existing = db.query(User).filter(User.username == payload.username).first()
-    if existing:
+    # 1️⃣ Check if username already exists
+    existing_user = db.query(User).filter(
+        User.username == payload.username
+    ).first()
+
+    if existing_user:
         raise HTTPException(status_code=400, detail="User already exists")
 
-    company = Company(name=payload.company_name)
-    db.add(company)
-    db.flush()  # get company.id
-    user = User(
+    # 2️⃣ Check if company already exists
+    company = db.query(Company).filter(
+        Company.name == payload.company_name
+    ).first()
+
+    # 3️⃣ If company does NOT exist, create it
+    if not company:
+        company = Company(name=payload.company_name)
+        db.add(company)
+        db.flush()  # get company.id without committing
+
+    # 4️⃣ Create manager under the company
+    manager = User(
         username=payload.username,
         password_hash=hash_password(payload.password),
         role=UserRole.MANAGER,
         company_id=company.id
     )
 
-    db.add(user)
+    db.add(manager)
     db.commit()
+    db.refresh(manager)
 
-    return {"message": "Manager and company created successfully"}
+    return {
+        "manager_id": manager.id,
+        "company_id": company.id,
+        "message": "Manager created successfully"
+    }
+
 
 @router.post("/login")
 def login(payload: LoginRequest, response: Response, db: Session = Depends(get_db)):
