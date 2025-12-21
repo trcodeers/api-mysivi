@@ -93,3 +93,57 @@ def assign_task(
         "assigned_to_id": reportee.id,
         "message": "Task assigned successfully"
     }
+
+
+
+@router.get("/")
+def list_manager_tasks(
+    db: Session = Depends(get_db),
+    current_user=Depends(require_manager)
+):
+    tasks = (
+        db.query(Task)
+        .filter(
+            Task.created_by_id == int(current_user["sub"]),
+            Task.company_id == current_user["company_id"],
+            Task.is_deleted == False
+        )
+        .all()
+    )
+
+    return [
+        {
+            "id": task.id,
+            "title": task.title,
+            "status": task.status,
+            "assigned_to_id": task.assigned_to_id,
+            "created_at": task.created_at
+        }
+        for task in tasks
+    ]
+
+
+
+@router.delete("/{task_id}")
+def delete_task(
+    task_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_manager)
+):
+    task = db.query(Task).filter(
+        Task.id == task_id,
+        Task.created_by_id == int(current_user["sub"]),
+        Task.company_id == current_user["company_id"],
+        Task.is_deleted == False
+    ).first()
+
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    task.is_deleted = True
+    db.commit()
+
+    return {
+        "task_id": task.id,
+        "message": "Task deleted successfully"
+    }
