@@ -6,7 +6,6 @@ from app.routes import health
 from app.routes import auth
 
 from app.db.database import engine
-from app.models import company
 from sqlalchemy import text
 from app.routes import task
 from app.routes import user
@@ -15,7 +14,6 @@ from app.core.rate_limit import limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
 
-company.Base.metadata.create_all(bind=engine)
 logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
