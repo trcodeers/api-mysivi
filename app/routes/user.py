@@ -6,11 +6,13 @@ from app.schemas.user import ReporteeCreate
 from app.core.permissions import require_manager
 from app.core.roles import UserRole
 from app.core.security import hash_password
+from app.core.config import RATE_LIMITS
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.post("/reportees")
+@limiter.limit(RATE_LIMITS.create_reportee)
 def create_reportee(
     payload: ReporteeCreate,
     db: Session = Depends(get_db),

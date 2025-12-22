@@ -9,10 +9,12 @@ from app.core.security import hash_password, verify_password
 from app.core.jwt import create_access_token
 from app.core.auth import get_current_user
 from app.core.rate_limit import limiter
+from app.core.config import RATE_LIMITS
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @router.post("/signup")
+@limiter.limit(RATE_LIMITS.signup)
 def manager_signup(payload: ManagerSignup, db: Session = Depends(get_db)):
     # 1️⃣ Check if username already exists
     existing_user = db.query(User).filter(
@@ -53,7 +55,7 @@ def manager_signup(payload: ManagerSignup, db: Session = Depends(get_db)):
 
 
 @router.post("/login")
-@limiter.limit("5/minute")
+@limiter.limit(RATE_LIMITS.login)
 def login(    
         request: Request,
         payload: LoginRequest, 
@@ -92,11 +94,3 @@ def login(
 def logout(response: Response):
     response.delete_cookie("access_token")
     return {"message": "Logged out successfully"}
-
-
-@router.get("/protected")
-def protected_route(user=Depends(get_current_user)):
-    return {
-        "user_id": user["sub"],
-        "role": user["role"]
-    }

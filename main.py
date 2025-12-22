@@ -2,7 +2,6 @@ from typing import Union
 from fastapi import FastAPI
 import logging
 
-from app.routes import health
 from app.routes import auth
 
 from app.db.database import engine
@@ -18,7 +17,6 @@ logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
 
-app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(task.router)
 app.include_router(user.router)
