@@ -102,6 +102,7 @@ def create_task(
 @router.patch("/{task_id}/assign")
 @limiter.limit(RATE_LIMITS.task_assign)
 def assign_task(
+    request: Request,
     task_id: int,
     payload: TaskAssign,
     db: Session = Depends(get_db),
@@ -174,6 +175,7 @@ def delete_task(
 @router.patch("/{task_id}/status")
 @limiter.limit(RATE_LIMITS.task_status_update)
 def update_task_status_by_manager(
+    request: Request,
     task_id: int,
     payload: TaskStatusUpdate,
     db: Session = Depends(get_db),
@@ -206,6 +208,7 @@ def update_task_status_by_manager(
 @router.patch("/{task_id}/self")
 @limiter.limit(RATE_LIMITS.task_status_self_update)
 def update_task_status_by_reportee(
+    request: Request,
     task_id: int,
     payload: TaskStatusUpdate,
     db: Session = Depends(get_db),

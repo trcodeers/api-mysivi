@@ -15,7 +15,7 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @router.post("/signup")
 @limiter.limit(RATE_LIMITS.signup)
-def manager_signup(payload: ManagerSignup, db: Session = Depends(get_db)):
+def manager_signup(request: Request, payload: ManagerSignup, db: Session = Depends(get_db)):
     # 1️⃣ Check if username already exists
     existing_user = db.query(User).filter(
         User.username == payload.username
