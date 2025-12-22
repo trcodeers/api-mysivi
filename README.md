@@ -32,7 +32,7 @@ cd <this-project-folder>
 ## Step 2: Create and Activate Virtual Environment
 
 - Create a virtual environment:
-python -m venv venv
+python3 -m venv venv
 Activate it:
 
 source venv/bin/activate
