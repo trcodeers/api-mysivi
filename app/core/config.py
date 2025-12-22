@@ -9,7 +9,7 @@ JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(
     os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 30)
 )
-
+BCRYPT_ROUNDS = 12
 
 class RateLimits:
     signup = "5/minute"
