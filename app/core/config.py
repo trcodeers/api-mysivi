@@ -6,14 +6,14 @@ JWT_ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 class RateLimits:
-    signup = "5/hour"
-    login = "10/minute"
-    create_reportee = "20/hour"
-    task_list = "50/hour"
-    task_assign = "20/hour"
-    task_delete = "10/hour"
-    task_status_update = "30/hour"
-    task_status_self_update = "50/hour"
-    task_create = "30/hour"
+    signup = "5/minute"
+    login = "5/minute"
+    create_reportee = "20/minute"
+    task_list = "5/minute"
+    task_assign = "2/minute"
+    task_delete = "1/minute"
+    task_status_update = "3/minute"
+    task_status_self_update = "5/minute"
+    task_create = "3/minute"
 
 RATE_LIMITS = RateLimits()
