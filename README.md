@@ -56,7 +56,9 @@ touch .env
 Add the following values to the file:
 
 JWT_SECRET_KEY=CHANGE_ME_SUPER_SECRET
+
 JWT_ALGORITHM=HS256
+
 JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 ## Step 5: Database Setup
