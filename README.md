@@ -45,7 +45,7 @@ After activation, (venv) should appear in your terminal.
 
 Install all required dependencies using the frozen requirements file:
 
-python -m pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ## Step 4: Environment Configuration
 
 Create a .env file in the project root directory:
