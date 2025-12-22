@@ -413,6 +413,41 @@ The **Task** model represents work items managed within a company.
   - The manager who created the task
 
 
+## Inspecting the SQLite Database
+
+Navigate to the project root where `db.sqlite` is located and open the database:
+```
+sqlite3 db.sqlite
+```
+
+Once inside the SQLite prompt, run the following commands:
+List All Tables
+```
+.tables
+```
+
+View Users
+```
+SELECT * FROM users;
+```
+
+View Companies
+```
+SELECT * FROM companies;
+```
+
+View Tasks
+```
+SELECT * FROM tasks;
+```
+
+
+Exit the SQLite Prompt
+```
+.exit
+```
+
+
 ## Possible Improvements
 
 - Add proper application logging for important actions and errors.
