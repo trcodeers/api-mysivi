@@ -12,7 +12,7 @@
 
 ## Local Setup (macOS)
 
-This project was **developed and tested on macOS (MacBook)** using the following environment:
+This project was developed and tested on **macOS (MacBook)** using the following environment:
 
 - **Python:** 3.13.5  
 - **pip:** 25.2  
@@ -21,6 +21,68 @@ This project was **developed and tested on macOS (MacBook)** using the following
 The steps below assume a macOS system.
 
 ---
+
+## Step 1: Clone the Repository
+
+git clone <this-repository-url>
+cd <this-project-folder>
+
+---
+
+## Step 2: Create and Activate Virtual Environment
+
+- Create a virtual environment:
+python -m venv venv
+Activate it:
+
+source venv/bin/activate
+
+
+After activation, (venv) should appear in your terminal.
+
+## Step 3: Install Dependencies
+
+Install all required dependencies using the frozen requirements file:
+
+python -m pip install -r requirements.txt
+## Step 4: Environment Configuration
+
+Create a .env file in the project root directory:
+
+touch .env
+
+
+Add the following values to the file:
+
+JWT_SECRET_KEY=CHANGE_ME_SUPER_SECRET
+JWT_ALGORITHM=HS256
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+## Step 5: Database Setup
+
+The application uses SQLite
+
+No manual database setup is required
+
+Database tables are created automatically on application startup
+
+## Step 6: Run the Application
+
+Start the FastAPI development server:
+
+uvicorn main:app --reload
+
+
+The server will start at:
+
+http://127.0.0.1:8000
+
+Step 7: Access API Documentation
+
+Open your browser and visit:
+
+http://localhost:8000/docs
+--
 
 ## Prerequisites
 
@@ -32,10 +94,125 @@ Ensure the following are installed on your Mac:
 
 Verify versions:
 
-```bash
 python --version
 pip --version
 
+
+## Project Folder Structure
+
+---
+
+### `app/`
+
+This is the main application folder.  
+All backend code lives inside this directory.
+
+---
+
+### `app/routes/`
+
+This folder contains all API route definitions.
+
+- Each file groups related APIs together.
+- Keeping routes separated by feature makes the API structure clean and easy to navigate.
+
+#### Route Files
+
+- **`auth.py`**  
+  Contains authentication-related APIs such as manager signup, login, and logout.
+
+- **`task.py`**  
+  Contains task-related APIs such as creating tasks, assigning tasks, listing tasks, and updating task status.
+
+- **`user.py`**  
+  Contains user management APIs such as creating reportee accounts under a manager.
+
+---
+
+### `app/models/`
+
+This folder contains SQLAlchemy ORM models that define the database schema.
+
+#### Model Files
+
+- **`company.py`**  
+  Defines the `Company` model, which represents a tenant in the system.
+
+- **`user.py`**  
+  Defines the `User` model for both managers and reportees.
+
+- **`task.py`**  
+  Defines the `Task` model, including task status, assignment, and ownership.
+
+All models inherit from a shared SQLAlchemy `Base` so that tables can be created and managed consistently.
+
+---
+
+### `app/schemas/`
+
+This folder contains Pydantic schemas used for request and response validation.
+
+Schemas define:
+- What data an API expects as input
+- What data is returned in responses
+
+This ensures proper data validation and prevents invalid input from reaching the business logic layer.
+
+---
+
+### `app/core/`
+
+This folder contains shared core logic reused across the application.
+
+#### Core Files
+
+- **`auth.py`**  
+  Handles extracting and validating the current user from JWT cookies.
+
+- **`jwt.py`**  
+  Contains logic for creating and verifying JWT tokens.
+
+- **`security.py`**  
+  Handles password hashing and verification using bcrypt.
+
+- **`permissions.py`**  
+  Contains role-based permission checks such as `require_manager` and `require_reportee`.
+
+- **`rate_limit.py`**  
+  Configures API rate limiting using SlowAPI.
+
+- **`config.py`**  
+  Loads environment variables and central configuration such as rate limits.
+
+Keeping this logic in one place avoids duplication and keeps route handlers clean.
+
+---
+
+### `app/db/`
+
+This folder handles database setup and configuration.
+
+- **`database.py`**  
+  Creates the SQLAlchemy engine and session.
+
+- **`deps.py`**  
+  Defines the database session.
+
+This separation keeps database configuration isolated from business logic.
+
+---
+
+### `main.py`
+
+This is the application entry point.
+
+#### Responsibilities
+
+- Creating the FastAPI application
+- Registering all routers
+- Initializing rate limiting
+- Creating database tables on startup
+- Starting the application server
 
 
 ## Authentication & Authorization Layer
@@ -123,7 +300,7 @@ The **Company** model represents a tenant in the system.
 - The `name` field stores the company name provided during manager signup and is marked as **unique** to prevent duplicate companies.
 - The `created_at` field stores the timestamp when the company was created, supporting auditing and future tracking.
 
-### Creation Rules
+## Creation Rules
 
 - A company is created automatically during manager signup.
 - There is **no separate API** to create a company.
@@ -138,7 +315,7 @@ This design ensures:
 
 The **User** model stores both managers and reportees in a single table.
 
-### Core Fields
+## Core Fields
 
 - `id`  
   Uniquely identifies each user.
@@ -153,7 +330,7 @@ The **User** model stores both managers and reportees in a single table.
   Defines whether the user is a `MANAGER` or a `REPORTEE`.  
   Enforced at the API level using role-based permissions.
 
-### Relationships & Access Control
+## Relationships & Access Control
 
 - `company_id`  
   Links the user to a specific company and is the foundation of **tenant isolation**.  
@@ -163,7 +340,7 @@ The **User** model stores both managers and reportees in a single table.
   Used only for reportees.  
   Links a reportee to the manager who created them, establishing a reporting hierarchy and ensuring each reportee belongs to exactly one manager.
 
-### Account State & Auditing
+## Account State & Auditing
 
 - `is_active`  
   Allows users to be disabled without deleting their records, supporting safer account management and future auditing.
@@ -172,7 +349,7 @@ The **User** model stores both managers and reportees in a single table.
 - `updated_at`  
   Track when the user was created and last updated.
 
-### Relationships
+## Relationships
 
 - Users are linked to their company.
 - Reportees are additionally linked to their manager.
@@ -183,7 +360,7 @@ The **User** model stores both managers and reportees in a single table.
 
 The **Task** model represents work items managed within a company.
 
-### Core Fields
+## Core Fields
 
 - `id`  
   Uniquely identifies each task.
@@ -205,7 +382,7 @@ The **Task** model represents work items managed within a company.
 
   Status transitions are enforced at the application level based on user role.
 
-### Relationships & Ownership
+## Relationships & Ownership
 
 - `assigned_to_id`  
   Links the task to a reportee.  
@@ -219,7 +396,7 @@ The **Task** model represents work items managed within a company.
   Links the task to a company and enforces **tenant isolation**.  
   All task queries are scoped using this field to prevent cross-company access.
 
-### Soft Deletion & Auditing
+## Soft Deletion & Auditing
 
 - `is_deleted`  
   Implements **soft deletion**.  
@@ -229,7 +406,7 @@ The **Task** model represents work items managed within a company.
 - `updated_at`  
   Track when the task was created and last modified.
 
-### Relationships
+## Relationships
 
 - Tasks are linked to:
   - The assigned reportee
