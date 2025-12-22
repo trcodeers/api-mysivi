@@ -12,14 +12,14 @@ JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(
 BCRYPT_ROUNDS = 12
 
 class RateLimits:
-    signup = "5/minute"
-    login = "5/minute"
+    signup = "1/minute"
+    login = "3/minute"
     create_reportee = "20/minute"
     task_list = "5/minute"
     task_assign = "2/minute"
     task_delete = "1/minute"
     task_status_update = "3/minute"
     task_status_self_update = "5/minute"
-    task_create = "3/minute"
+    task_create = "10/minute"
 
 RATE_LIMITS = RateLimits()

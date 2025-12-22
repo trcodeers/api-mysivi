@@ -234,3 +234,26 @@ The **Task** model represents work items managed within a company.
 - Tasks are linked to:
   - The assigned reportee
   - The manager who created the task
+
+
+## Possible Improvements
+
+- Add proper application logging for important actions and errors.
+
+- Enforce password complexity rules during signup.
+
+- Add account lockout after multiple failed login attempts.
+
+- Improve request and response validation error logging.
+
+- Add task priority support (`LOW`, `MEDIUM`, `HIGH`).
+
+- Add an API to list all reportees under a manager.
+
+- Add task categories for better task organization.
+
+- Add database indexing on task-related columns to improve query performance.
+
+- Add filtering and searching capabilities on tasks.
+
+- Use Redis to improve performance for filtering, searching, and rate limiting.
