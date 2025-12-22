@@ -52,7 +52,7 @@ def list_tasks(
 
 
 # Create a new task (optionally assigned to a reportee)
-@router.post("/")
+@router.post("")
 @limiter.limit(RATE_LIMITS.task_create)
 def create_task(
     request: Request,
