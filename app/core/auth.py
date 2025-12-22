@@ -1,6 +1,6 @@
 from fastapi import Request, HTTPException
 from jose import jwt, JWTError
-from app.core.config import SECRET_KEY, ALGORITHM
+from app.core.config import JWT_SECRET_KEY, JWT_ALGORITHM
 
 def get_current_user(request: Request):
     token = request.cookies.get("access_token")
@@ -9,7 +9,7 @@ def get_current_user(request: Request):
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
         request.state.user = payload
         return payload
     except JWTError:
@@ -22,7 +22,7 @@ def get_current_user_optional(request: Request):
         return None
 
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
         return payload  # contains user_id / role etc
     except JWTError:
         return None
