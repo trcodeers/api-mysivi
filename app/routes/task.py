@@ -1,3 +1,4 @@
+import math
 from fastapi import APIRouter, Depends, HTTPException, Request, Query
 from sqlalchemy.orm import Session
 from app.db.deps import get_db
@@ -23,7 +24,7 @@ def list_tasks(
     
     offset = (page - 1) * TASK_LIST_PAGINATION_SIZE
 
-    # Manager view
+    # Base query depending on role
     if current_user["role"] == "MANAGER":
         query = db.query(Task).filter(
             Task.created_by_id == int(current_user["sub"]),
@@ -31,7 +32,6 @@ def list_tasks(
             Task.is_deleted == False
         )
 
-    # Reportee view
     elif current_user["role"] == "REPORTEE":
         query = db.query(Task).filter(
             Task.assigned_to_id == int(current_user["sub"]),
@@ -43,6 +43,14 @@ def list_tasks(
         raise HTTPException(status_code=403, detail="Invalid role")
 
     total_tasks = query.count()
+    max_page = max(1, math.ceil(total_tasks / TASK_LIST_PAGINATION_SIZE))
+
+    # 🔴 Page validation
+    if page > max_page:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Page {page} does not exist. Max page is {max_page}."
+        )
 
     tasks = (
         query
@@ -56,6 +64,7 @@ def list_tasks(
         "page": page,
         "page_size": TASK_LIST_PAGINATION_SIZE,
         "total_tasks": total_tasks,
+        "max_page": max_page,
         "tasks": [
             {
                 "task_id": task.id,

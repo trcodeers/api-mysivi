@@ -77,6 +77,8 @@ This guarantees:
 - Reportees can update task status **only to `COMPLETED`**
 - Managers can update task status at any stage
 - Tasks use **soft delete** (`is_deleted`) instead of hard deletion
+- Manager can see all the tasks created by him,, while Reportee can see all the task assigned to him
+- Tasks are displayed in pagination, page size can configured in config.py
 
 ---
 
