@@ -24,8 +24,9 @@ The steps below assume a macOS system.
 
 ## Step 1: Clone the Repository
 
-git clone <this-repository-url>
-cd <this-project-folder>
+git clone *this-repository-url*
+
+cd *this-project-folder*
 
 ---
 
