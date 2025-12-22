@@ -108,7 +108,6 @@ openai==1.64.0
 orjson==3.10.15
 packaging==24.2
 pandas==2.3.3
-passlib==1.7.4
 pathlib==1.0.1
 pgvector==0.4.1
 pillow==10.4.0
