@@ -23,3 +23,6 @@ class RateLimits:
     task_create = "10/minute"
 
 RATE_LIMITS = RateLimits()
+
+
+TASK_LIST_PAGINATION_SIZE = 5

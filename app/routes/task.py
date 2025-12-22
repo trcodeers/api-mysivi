@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Query
 from sqlalchemy.orm import Session
 from app.db.deps import get_db
 from app.schemas.task import TaskCreate, TaskAssign, TaskStatusUpdate
@@ -7,7 +7,7 @@ from app.models.user import User
 from app.core.permissions import require_manager, require_reportee, get_current_user
 from app.core.task_status import TaskStatus
 from app.core.rate_limit import limiter
-from app.core.config import RATE_LIMITS
+from app.core.config import RATE_LIMITS, TASK_LIST_PAGINATION_SIZE
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
@@ -16,39 +16,58 @@ router = APIRouter(prefix="/tasks", tags=["Tasks"])
 @limiter.limit(RATE_LIMITS.task_list)
 def list_tasks(
     request: Request,
+    page: int = Query(1, ge=1),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
+    
+    offset = (page - 1) * TASK_LIST_PAGINATION_SIZE
+
     # Manager view
     if current_user["role"] == "MANAGER":
-        tasks = db.query(Task).filter(
+        query = db.query(Task).filter(
             Task.created_by_id == int(current_user["sub"]),
             Task.company_id == current_user["company_id"],
             Task.is_deleted == False
-        ).all()
+        )
 
     # Reportee view
     elif current_user["role"] == "REPORTEE":
-        tasks = db.query(Task).filter(
+        query = db.query(Task).filter(
             Task.assigned_to_id == int(current_user["sub"]),
             Task.company_id == current_user["company_id"],
             Task.is_deleted == False
-        ).all()
+        )
 
     else:
         raise HTTPException(status_code=403, detail="Invalid role")
 
-    return [
-        {
-            "task_id": task.id,
-            "title": task.title,
-            "status": task.status,
-            "assigned_to_id": task.assigned_to_id,
-            "created_at": task.created_at,
-            "updated_at": task.updated_at
-        }
-        for task in tasks
-    ]
+    total_tasks = query.count()
+
+    tasks = (
+        query
+        .order_by(Task.created_at.desc())
+        .offset(offset)
+        .limit(TASK_LIST_PAGINATION_SIZE)
+        .all()
+    )
+
+    return {
+        "page": page,
+        "page_size": TASK_LIST_PAGINATION_SIZE,
+        "total_tasks": total_tasks,
+        "tasks": [
+            {
+                "task_id": task.id,
+                "title": task.title,
+                "status": task.status,
+                "assigned_to_id": task.assigned_to_id,
+                "created_at": task.created_at,
+                "updated_at": task.updated_at
+            }
+            for task in tasks
+        ]
+    }
 
 
 # Create a new task (optionally assigned to a reportee)
