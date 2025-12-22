@@ -1,8 +1,14 @@
+import os
 from datetime import timedelta
+from dotenv import load_dotenv
 
-JWT_SECRET_KEY = "CHANGE_ME_SUPER_SECRET"
-JWT_ALGORITHM = "HS256"
-JWT_ACCESS_TOKEN_EXPIRE_MINUTES = 30
+load_dotenv()  
+
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(
+    os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 30)
+)
 
 
 class RateLimits:
