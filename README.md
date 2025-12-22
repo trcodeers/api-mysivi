@@ -37,8 +37,6 @@ python --version
 pip --version
 
 
-## Application Architecture
-
 
 ## Authentication & Authorization Layer
 
