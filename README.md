@@ -33,10 +33,12 @@ cd *this-project-folder*
 ## Step 2: Create and Activate Virtual Environment
 
 - Create a virtual environment:
-python3 -m venv venv
+
+```python3 -m venv venv```
+
 Activate it:
 
-source venv/bin/activate
+```source venv/bin/activate```
 
 
 After activation, (venv) should appear in your terminal.
@@ -45,7 +47,7 @@ After activation, (venv) should appear in your terminal.
 
 Install all required dependencies using the frozen requirements file:
 
-python3 -m pip install -r requirements.txt
+```python3 -m pip install -r requirements.txt```
 ## Step 4: Environment Configuration
 
 Create a .env file in the project root directory:
